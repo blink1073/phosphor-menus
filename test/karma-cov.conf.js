@@ -1,19 +1,17 @@
+var path = require('path');
+
 module.exports = function (config) {
   config.set({
+    basePath: '..',
     browsers: ['Firefox'],
-    frameworks: ['browserify', 'mocha'],
+    frameworks: ['mocha'],
     reporters: ['mocha', 'coverage'],
-    preprocessors: { 'build/*.js': ['browserify'] },
-    browserify: {
-      debug: true,
-      transform: ['browserify-css', 'browserify-istanbul']
-    },
-    files: ['build/*.js'],
+    files: ['test/build/coverage.js'],
     coverageReporter: {
       reporters : [
         { 'type': 'text' },
-        { 'type': 'lcov', dir: 'coverage' },
-        { 'type': 'html', dir: 'coverage' }
+        { 'type': 'lcov', dir: 'test/coverage' },
+        { 'type': 'html', dir: 'test/coverage' }
       ]
     },
     port: 9876,

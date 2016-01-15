@@ -1,10 +1,9 @@
 module.exports = function (config) {
   config.set({
-    frameworks: ['browserify', 'mocha'],
+    basePath: '..',
+    frameworks: ['mocha'],
     reporters: ['mocha'],
-    preprocessors: { 'build/*.js': ['browserify'] },
-    browserify: { debug: true, transform: ['browserify-css'] },
-    files: ['build/*.js'],
+    files: ['test/build/bundle.js'],
     port: 9876,
     colors: true,
     singleRun: true,
