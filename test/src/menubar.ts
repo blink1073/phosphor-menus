@@ -288,8 +288,12 @@ describe('phosphor-menus', () => {
 
       it('should dispose of the resources held by the menu', () => {
         let bar = createMenuBar();
+        bar.attach(document.body);
+        bar.activeIndex = 0;
+        bar.openActiveItem();
+        expect(bar.childMenu).to.not.be(null);
         bar.dispose();
-        expect(bar.items.length).to.be(0);
+        expect(bar.childMenu).to.be(null);
       });
 
     });
@@ -328,29 +332,6 @@ describe('phosphor-menus', () => {
         let bar = createMenuBar();
         bar.activeIndex = 0;
         expect(bar.methods.indexOf('onActiveIndexChanged')).to.not.be(-1);
-      });
-
-    });
-
-    describe('#onOpenItem()', () => {
-
-      it('should be invoked when a menu item should be opened', () => {
-        let bar = createMenuBar();
-        bar.attach(document.body);
-        bar.activateNextItem();
-        bar.openActiveItem();
-        expect(bar.methods.indexOf('onOpenItem')).to.not.be(-1);
-        bar.dispose();
-      });
-
-      it('should open the child menu', () => {
-        let bar = createMenuBar();
-        bar.attach(document.body);
-        bar.activateNextItem();
-        bar.openActiveItem();
-        expect(bar.methods.indexOf('onOpenItem')).to.not.be(-1);
-        expect(bar.childMenu).to.be(bar.items[0].submenu);
-        bar.dispose();
       });
 
     });
@@ -529,10 +510,12 @@ describe('phosphor-menus', () => {
         let called = false;
         let cmd = new DelegateCommand(() => { called = true; });
         bar.childMenu.items[0].command = cmd;
-        let node = bar.childMenu.contentNode.firstChild as HTMLElement;
-        triggerMouseEvent(node, 'mouseenter');
-        triggerMouseEvent(node, 'mousedown');
-        triggerMouseEvent(node, 'mouseup');
+        let node = bar.childMenu.node;
+        node = node.getElementsByClassName('p-Menu-item')[0] as HTMLElement;
+        let rect = node.getBoundingClientRect();
+        let args = { clientX: rect.left + 1, clientY: rect.top + 1 };
+        triggerMouseEvent(node, 'mousedown', args);
+        triggerMouseEvent(node, 'mouseup', args);
         expect(called).to.be(true);
         bar.close();
       });
