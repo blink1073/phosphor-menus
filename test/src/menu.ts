@@ -10,10 +10,6 @@
 import expect = require('expect.js');
 
 import {
-  DelegateCommand
-} from 'phosphor-command';
-
-import {
   Message
 } from 'phosphor-messaging';
 
@@ -80,38 +76,37 @@ class LogMenu extends Menu {
 
 
 function createMenu(): LogMenu {
-  let cmd = new DelegateCommand(() => { });
   return new LogMenu([
     new MenuItem({
       text: '&Copy',
       shortcut: 'Ctrl+C',
-      command: cmd
+      handler: () => { }
     }),
     new MenuItem({
       text: 'Cu&t',
       shortcut: 'Ctrl+X',
-      command: cmd
+      handler: () => { }
     }),
     new MenuItem({
       text: '&Paste',
       shortcut: 'Ctrl+V',
-      command: cmd
+      handler: () => { }
     }),
     new MenuItem({
       type: MenuItem.Separator
     }),
     new MenuItem({
       text: '&New Tab',
-      command: cmd
+      handler: () => { }
     }),
     new MenuItem({
       text: '&Close Tab',
-      command: cmd
+      handler: () => { }
     }),
     new MenuItem({
       type: MenuItem.Check,
       text: '&Save On Exit',
-      command: cmd
+      handler: () => { }
     }),
     new MenuItem({
       type: MenuItem.Separator
@@ -127,19 +122,19 @@ function createMenu(): LogMenu {
       submenu: new LogMenu([
         new MenuItem({
           text: 'One',
-          command: cmd
+          handler: () => { }
         }),
         new MenuItem({
           text: 'Two',
-          command: cmd
+          handler: () => { }
         }),
         new MenuItem({
           text: 'Three',
-          command: cmd
+          handler: () => { }
         }),
         new MenuItem({
           text: 'Four',
-          command: cmd
+          handler: () => { }
         })
       ])
     }),
@@ -148,7 +143,7 @@ function createMenu(): LogMenu {
     }),
     new MenuItem({
       text: 'Close',
-      command: cmd
+      handler: () => { }
     })
   ]);
 }
@@ -325,8 +320,8 @@ describe('phosphor-menus', () => {
       });
 
       it('should bail if there is no submenu', () => {
-        let command = new DelegateCommand(() => {});
-        let menu = new Menu([new MenuItem({ command })]);
+        let handler = () => {};
+        let menu = new Menu([new MenuItem({ handler })]);
         menu.attach(document.body);
         menu.activeIndex = 0;
         menu.openActiveItem();
@@ -348,10 +343,10 @@ describe('phosphor-menus', () => {
         menu.dispose();
       });
 
-      it('should trigger the command of the active item, if possible', () => {
+      it('should trigger the handler of the active item, if possible', () => {
         let called = false;
-        let command = new DelegateCommand(() => { called = true; });
-        let menu = new Menu([new MenuItem({ command })]);
+        let handler = () => { called = true; };
+        let menu = new Menu([new MenuItem({ handler })]);
         menu.attach(document.body);
         menu.activeIndex = 0;
         menu.triggerActiveItem();
@@ -361,8 +356,8 @@ describe('phosphor-menus', () => {
 
       it('should bail if the menu is not visible', () => {
         let called = false;
-        let command = new DelegateCommand(() => { called = true; });
-        let menu = new Menu([new MenuItem({ command })]);
+        let handler = () => { called = true; };
+        let menu = new Menu([new MenuItem({ handler })]);
         menu.activeIndex = 0;
         menu.triggerActiveItem();
         expect(called).to.be(false);
@@ -370,8 +365,8 @@ describe('phosphor-menus', () => {
 
       it('should bail if there is no active item', () => {
         let called = false;
-        let command = new DelegateCommand(() => { called = true; });
-        let menu = new Menu([new MenuItem({ command })]);
+        let handler = () => { called = true; };
+        let menu = new Menu([new MenuItem({ handler })]);
         menu.attach(document.body);
         menu.triggerActiveItem();
         expect(called).to.be(false);
@@ -380,9 +375,9 @@ describe('phosphor-menus', () => {
 
       it('should bail if the active item cannot be triggered', () => {
         let called = false;
-        let command = new DelegateCommand(() => { called = true; });
-        command.enabled = false;
-        let menu = new Menu([new MenuItem({ command })]);
+        let handler = () => { called = true; };
+        let disabled = true;
+        let menu = new Menu([new MenuItem({ handler, disabled })]);
         menu.attach(document.body);
         menu.activeIndex = 0;
         menu.triggerActiveItem();
@@ -529,10 +524,10 @@ describe('phosphor-menus', () => {
         menu.dispose();
       });
 
-      it('should invoke the item command', () => {
+      it('should invoke the item handler', () => {
         let called = false;
-        let cmd = new DelegateCommand(() => { called = true; });
-        let menu = new Menu([new MenuItem({ command: cmd })]);
+        let handler = () => { called = true; };
+        let menu = new Menu([new MenuItem({ handler })]);
         menu.popup(0, 0);
         menu.activateNextItem();
         menu.triggerActiveItem();
@@ -596,8 +591,7 @@ describe('phosphor-menus', () => {
       it('should trigger the active item on `Enter`', () => {
         let menu = createMenu();
         let called = false;
-        let cmd = new DelegateCommand(() => { called = true; });
-        menu.items[0].command = cmd;
+        menu.items[0].handler = () => { called = true; };
         menu.popup(0, 0);
         menu.activateNextItem();
         triggerKeyEvent(document.body, 'keydown', { keyCode: 13 });
@@ -690,10 +684,14 @@ describe('phosphor-menus', () => {
         menu.popup(0, 0);
         menu.activeIndex = 10;
         menu.openActiveItem();
-        let node0 = menu.contentNode.firstChild as HTMLElement;
-        let node1 = menu.contentNode.childNodes[10] as HTMLElement;
-        triggerMouseEvent(node0, 'mouseenter');
-        triggerMouseEvent(node1, 'mouseenter');
+        let node = menu.contentNode.firstChild as HTMLElement;
+        let rect = node.getBoundingClientRect();
+        let args = { clientX: rect.left + 1, clientY: rect.top + 1 };
+        triggerMouseEvent(node, 'mousemove', args);
+        node = menu.contentNode.childNodes[10] as HTMLElement;
+        rect = node.getBoundingClientRect();
+        args = { clientX: rect.left + 1, clientY: rect.top + 1 };
+        triggerMouseEvent(node, 'mousemove', args);
         setTimeout(() => {
           expect(menu.childMenu).to.not.be(null);
           menu.dispose();
@@ -701,22 +699,24 @@ describe('phosphor-menus', () => {
         }, 500);
       });
 
-      it('should trigger the item on mouse over and click', () => {
+      it('should trigger the item on mouse over and mouse up', () => {
         let menu = createMenu();
         menu.popup(0, 0);
         menu.activeIndex = 10;
         menu.openActiveItem();
         let called = false;
-        let cmd = new DelegateCommand(() => { called = true; });
-        menu.childMenu.items[0].command = cmd;
+        menu.childMenu.items[0].handler = () => { called = true; };
         let node = menu.childMenu.contentNode.childNodes[0] as HTMLElement;
-        triggerMouseEvent(node, 'mouseenter');
-        triggerMouseEvent(node, 'mouseup');
+        let rect = node.getBoundingClientRect();
+        let args = { clientX: rect.left + 1, clientY: rect.top + 1 };
+        triggerMouseEvent(node, 'mousemove', args);
+        triggerMouseEvent(node, 'mousedown', args);
+        triggerMouseEvent(node, 'mouseup', args);
         expect(called).to.be(true);
         menu.dispose();
       });
 
-      it('should ignore context menu events', () => {
+      it('should suppress context menu events', () => {
         let menu = createMenu();
         menu.attach(document.body);
         let event = triggerMouseEvent(menu.node, 'contextmenu');
@@ -726,18 +726,18 @@ describe('phosphor-menus', () => {
 
     });
 
-      it('should close the child menu on mouse leave', (done) => {
-        let menu = createMenu();
-        menu.popup(0, 0);
-        menu.activeIndex = 10;
-        menu.openActiveItem();
-        triggerMouseEvent(menu.node, 'mouseleave');
-        setTimeout(() => {
-          expect(menu.childMenu).to.be(null);
-          menu.dispose();
-          done();
-        }, 500);
-      });
+    it('should close the child menu on mouse leave', (done) => {
+      let menu = createMenu();
+      menu.popup(0, 0);
+      menu.activeIndex = 10;
+      menu.openActiveItem();
+      triggerMouseEvent(menu.node, 'mouseleave');
+      setTimeout(() => {
+        expect(menu.childMenu).to.be(null);
+        menu.dispose();
+        done();
+      }, 500);
+    });
 
   });
 

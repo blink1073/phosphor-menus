@@ -10,10 +10,6 @@
 import expect = require('expect.js');
 
 import {
-  DelegateCommand
-} from 'phosphor-command';
-
-import {
   IChangedArgs, Property
 } from 'phosphor-properties';
 
@@ -76,8 +72,7 @@ describe('phosphor-menus', () => {
           icon: 'baz',
           shortcut: 'Ctrl+Z',
           className: 'fizz',
-          command: new DelegateCommand(() => { }),
-          commandArgs: 'buzz',
+          handler: () => {},
           submenu: new Menu()
         });
         expect(item instanceof MenuItem).to.be(true);
@@ -234,58 +229,30 @@ describe('phosphor-menus', () => {
 
     });
 
-    describe('#command', () => {
+    describe('#handler', () => {
 
-      it('should get the command for the menu item', () => {
+      it('should get the handler for the menu item', () => {
         let item = new MenuItem();
-        expect(item.command).to.be(null);
+        expect(item.handler).to.be(null);
       });
 
-      it('should set the command for the menu item', () => {
+      it('should set the handler for the menu item', () => {
         let item = new MenuItem();
-        let command = new DelegateCommand(() => { });
-        item.command = command;
-        expect(item.command).to.be(command);
-      });
-
-      it('should emit the changed signal', () => {
-        let item = new MenuItem();
-        let command = new DelegateCommand(() => { });
-        let args: IChangedArgs<any> = null;
-        item.changed.connect((s, a) => { args = a; });
-        item.command = command;
-        expect(args).to.eql({
-          name: 'command',
-          oldValue: null,
-          newValue: command,
-        });
-      });
-
-    });
-
-    describe('#commandArgs', () => {
-
-      it('should get the command args for the menu item', () => {
-        let item = new MenuItem();
-        expect(item.command).to.be(null);
-      });
-
-      it('should set the command args for the menu item', () => {
-        let item = new MenuItem();
-        let args = {};
-        item.commandArgs = args;
-        expect(item.commandArgs).to.be(args);
+        let handler = () => {};
+        item.handler = handler;
+        expect(item.handler).to.be(handler);
       });
 
       it('should emit the changed signal', () => {
         let item = new MenuItem();
+        let handler = () => { };
         let args: IChangedArgs<any> = null;
         item.changed.connect((s, a) => { args = a; });
-        item.commandArgs = {};
+        item.handler = handler;
         expect(args).to.eql({
-          name: 'commandArgs',
+          name: 'handler',
           oldValue: null,
-          newValue: {},
+          newValue: handler,
         });
       });
 

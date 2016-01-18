@@ -10,10 +10,6 @@
 import expect = require('expect.js');
 
 import {
-  DelegateCommand
-} from 'phosphor-command';
-
-import {
   Message, sendMessage
 } from 'phosphor-messaging';
 
@@ -80,7 +76,6 @@ class LogMenuBar extends MenuBar {
 
 
 function createMenuBar(): LogMenuBar {
-  let cmd = new DelegateCommand(() => { });
   return new LogMenuBar([
     new MenuItem({
       text: 'File',
@@ -88,23 +83,23 @@ function createMenuBar(): LogMenuBar {
         new MenuItem({
           text: 'New File',
           shortcut: 'Ctrl+N',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'Open File',
           type: MenuItem.Check,
           shortcut: 'Ctrl+O',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: '&Save File',
           shortcut: 'Ctrl+S',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'Save As...',
           shortcut: 'Ctrl+Shift+S',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           type: MenuItem.Separator
@@ -112,11 +107,11 @@ function createMenuBar(): LogMenuBar {
         new MenuItem({
           text: 'Close File',
           shortcut: 'Ctrl+W',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'Close All Files',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           type: MenuItem.Separator
@@ -126,19 +121,19 @@ function createMenuBar(): LogMenuBar {
           submenu: new Menu([
             new MenuItem({
               text: 'One',
-              command: cmd
+              handler: () => {}
             }),
             new MenuItem({
               text: 'Two',
-              command: cmd
+              handler: () => {}
             }),
             new MenuItem({
               text: 'Three',
-              command: cmd
+              handler: () => {}
             }),
             new MenuItem({
               text: 'Four',
-              command: cmd
+              handler: () => {}
             })
           ])
         }),
@@ -147,7 +142,7 @@ function createMenuBar(): LogMenuBar {
         }),
         new MenuItem({
           text: 'Exit',
-          command: cmd
+          handler: () => {}
         })
       ])
     }),
@@ -158,13 +153,13 @@ function createMenuBar(): LogMenuBar {
           text: '&Undo',
           shortcut: 'Ctrl+Z',
           className: 'undo',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: '&Repeat',
           shortcut: 'Ctrl+Y',
           className: 'repeat',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           type: MenuItem.Separator
@@ -173,19 +168,19 @@ function createMenuBar(): LogMenuBar {
           text: '&Copy',
           shortcut: 'Ctrl+C',
           className: 'copy',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'Cu&t',
           shortcut: 'Ctrl+X',
           className: 'cut',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: '&Paste',
           shortcut: 'Ctrl+V',
           className: 'paste',
-          command: cmd
+          handler: () => {}
         })
       ])
     }),
@@ -195,17 +190,17 @@ function createMenuBar(): LogMenuBar {
         new MenuItem({
           text: 'Find...',
           shortcut: 'Ctrl+F',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'Find Next',
           shortcut: 'F3',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'Find Previous',
           shortcut: 'Shift+F3',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           type: MenuItem.Separator
@@ -213,12 +208,12 @@ function createMenuBar(): LogMenuBar {
         new MenuItem({
           text: 'Replace...',
           shortcut: 'Ctrl+H',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'Replace Next',
           shortcut: 'Ctrl+Shift+H',
-          command: cmd
+          handler: () => {}
         })
       ])
     }),
@@ -230,19 +225,26 @@ function createMenuBar(): LogMenuBar {
       submenu: new Menu([
         new MenuItem({
           text: 'Documentation',
-          command: cmd
+          handler: () => {}
         }),
         new MenuItem({
           text: 'About',
-          command: cmd
+          handler: () => {}
         })
       ])
+    }),
+    new MenuItem({
+      text: 'foo'
+    }),
+    new MenuItem({
+      text: 'bar',
+      disabled: true
     })
   ]);
 }
 
 
-function triggerMouseEvent(node: HTMLElement, eventType: string, options: any = {}) {
+function triggerMouseEvent(node: HTMLElement, eventType: string, options: any = {}): MouseEvent {
   let event = document.createEvent('MouseEvent');
   event.initMouseEvent(
     eventType, true, true, window, 0, 0, 0,
@@ -252,6 +254,7 @@ function triggerMouseEvent(node: HTMLElement, eventType: string, options: any = 
     options.button || 0, options.relatedTarget || null
   );
   node.dispatchEvent(event);
+  return event;
 }
 
 
@@ -316,6 +319,44 @@ describe('phosphor-menus', () => {
 
     });
 
+    describe('#childMenu', () => {
+
+      it('should get the menu bar content node', () => {
+        let bar = createMenuBar();
+        expect(bar.contentNode.classList.contains('p-MenuBar-content')).to.be(true);
+      });
+
+    });
+
+    describe('#openActiveItem()', () => {
+
+      it('should open the submenu of the active item', () => {
+        let bar = createMenuBar();
+        bar.attach(document.body);
+        bar.activeIndex = 0;
+        bar.openActiveItem();
+        expect(bar.childMenu).to.not.be(null);
+        bar.dispose();
+      });
+
+      it('should bail if not visible', () => {
+        let bar = createMenuBar();
+        bar.activeIndex = 0;
+        bar.openActiveItem();
+        expect(bar.childMenu).to.be(null);
+      });
+
+      it('should bail if no item is active', () => {
+        let bar = createMenuBar();
+        bar.attach(document.body);
+        bar.openActiveItem();
+        expect(bar.childMenu).to.be(null);
+        bar.dispose();
+      });
+
+    });
+
+
     describe('#onItemsChanged()', () => {
 
       it('should be invoked when the menu items change', () => {
@@ -374,8 +415,7 @@ describe('phosphor-menus', () => {
         bar.activateNextItem();
         bar.openActiveItem();
         let called = false;
-        let cmd = new DelegateCommand(() => { called = true; });
-        bar.childMenu.items[0].command = cmd;
+        bar.childMenu.items[0].handler = () => { called = true; };
         bar.childMenu.activateNextItem();
         setTimeout(() => {
           triggerKeyEvent(document.body, 'keydown', { keyCode: 13 });
@@ -508,8 +548,7 @@ describe('phosphor-menus', () => {
         bar.openActiveItem();
         bar.childMenu.activeIndex = 0;
         let called = false;
-        let cmd = new DelegateCommand(() => { called = true; });
-        bar.childMenu.items[0].command = cmd;
+        bar.childMenu.items[0].handler = () => { called = true; };
         let node = bar.childMenu.node;
         node = node.getElementsByClassName('p-Menu-item')[0] as HTMLElement;
         let rect = node.getBoundingClientRect();
@@ -549,6 +588,19 @@ describe('phosphor-menus', () => {
         }, 0);
       });
 
+      it('should clear the activeIndex on mouseleave', (done) => {
+        let bar = createMenuBar();
+        bar.attach(document.body);
+        sendMessage(bar, Widget.MsgUpdateRequest);
+        bar.activeIndex = 0;
+        setTimeout(() => {
+          triggerMouseEvent(bar.node, 'mouseleave');
+          expect(bar.activeIndex).to.be(-1);
+          bar.dispose();
+          done();
+        }, 0);
+      });
+
       it('should open a new submenu', (done) => {
         let bar = createMenuBar();
         bar.attach(document.body);
@@ -563,6 +615,48 @@ describe('phosphor-menus', () => {
           args = { clientX: rect.left + 1, clientY: rect.top + 1 };
           triggerMouseEvent(bar.node, 'mousemove', args);
           expect(bar.childMenu).to.be(bar.items[1].submenu);
+          bar.close();
+          done();
+        }, 0);
+      });
+
+      it('should suppress context menu events', () => {
+        let bar = createMenuBar();
+        bar.attach(document.body);
+        let event = triggerMouseEvent(bar.node, 'contextmenu');
+        expect(event.defaultPrevented).to.be(true);
+        bar.dispose();
+      });
+
+      it('should bail if the left mouse button was not pressed', () => {
+        let bar = createMenuBar();
+        bar.attach(document.body);
+        sendMessage(bar, Widget.MsgUpdateRequest);
+        let node = bar.contentNode.firstChild as HTMLElement;
+        let rect = node.getBoundingClientRect();
+        let args = { clientX: rect.left + 1, clientY: rect.top + 1,
+                     button: 1 };
+        triggerMouseEvent(node, 'mousedown', args);
+        expect(bar.activeIndex).to.be(-1);
+        bar.dispose();
+      });
+
+      it('should close a previously opened submenu', (done) => {
+        let bar = createMenuBar();
+        bar.attach(document.body);
+        sendMessage(bar, Widget.MsgUpdateRequest);
+        let nodes = bar.contentNode.getElementsByClassName('p-MenuBar-item');
+        let node = nodes[0] as HTMLElement;
+        let rect = node.getBoundingClientRect();
+        let args = { clientX: rect.left + 1, clientY: rect.top + 1 };
+        triggerMouseEvent(node, 'mousedown', args);
+        setTimeout(() => {
+          debugger;
+          node = nodes[1] as HTMLElement;
+          rect = node.getBoundingClientRect();
+          args = { clientX: rect.left + 1, clientY: rect.top + 1 };
+          triggerMouseEvent(node, 'mousedown', args);
+          expect(bar.childMenu).to.be(null);
           bar.close();
           done();
         }, 0);

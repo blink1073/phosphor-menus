@@ -10,10 +10,6 @@
   "files": [
     "../../typings/expect.js/expect.js.d.ts",
     "../../typings/mocha/mocha.d.ts",
-    "base.ts",
-    "index.ts",
-    "menu.ts",
-    "menubar.ts",
-    "menuitem.ts"
+    "index.ts"
   ]
 }
